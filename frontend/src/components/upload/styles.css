@@ -1,0 +1,8 @@
+#upload-input {
+    padding: 1.5rem;
+    border: 0.1rem dashed purple;
+}
+
+#upload-input[type='file'] {
+    color: transparent;
+}
