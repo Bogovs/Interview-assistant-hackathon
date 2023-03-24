@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState, useRef } from "react";
 import { fetchEndpoint } from "../utils";
 import { endpoint, formats } from "../constants";
 import "./styles.css";
@@ -6,6 +6,7 @@ import "./styles.css";
 // Handles File Upload
 const FileUpload = () => {
 	const [file, setFile] = useState<File>();
+	const uploadInput = useRef<HTMLInputElement>(null);
 
 	// Choose File to Upload
 	const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
@@ -29,17 +30,30 @@ const FileUpload = () => {
 		}
 	};
 
+	const simulateBrowse = () => {
+		uploadInput.current?.click();
+	};
+
 	return (
-		<div>
+		<div id="upload-container">
 			<input
+				ref={uploadInput}
 				type="file"
-				id="upload-input"
 				multiple={false}
+				id="actual-file-input"
 				title="Upload Audio File"
 				accept="audio/wav, audio/mp3, audio/falc"
 				onChange={handleFile}
 			/>
-			<div>{file && `${file.name}`}</div>
+			{/* rome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+			<div id="upload-input" onClick={simulateBrowse}>
+				<div id="browse-wrapper">
+					<button id="browse-button" onClick={simulateBrowse}>
+						Browse
+					</button>
+					<div id="file-metadata">{file && `${file.name}`}</div>
+				</div>
+			</div>
 			<button onClick={handleUpload}>Upload</button>
 		</div>
 	);
