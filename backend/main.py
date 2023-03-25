@@ -32,7 +32,7 @@ def custom_prompt(params: QA):
 @app.post("/audio")
 def upload_audio_file(audio_file: UploadFile = File(...)):
     # Check if the uploaded file is an audio file
-    if audio_file.content_type not in ["audio/mp3", "audio/wave", "audio/flac"]:
+    if audio_file.content_type not in ["audio/mp3", "audio/wave"]:
         raise HTTPException(
             status_code=400, detail="Only MP3, WAV, and FLAC files are supported.")
 
