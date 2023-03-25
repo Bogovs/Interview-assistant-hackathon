@@ -4,13 +4,15 @@ import { endpoint, formats } from "../constants";
 import "./styles.css";
 
 // Handles File Upload
-const FileUpload = () => {
+const FileUpload = ({setAudioBlob}) => {
 	const [file, setFile] = useState<File>();
 	const uploadInput = useRef<HTMLInputElement>(null);
 
 	// Choose File to Upload
 	const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files) {
+			console.log(URL.createObjectURL(e.target.files[0]))
+			setAudioBlob(URL.createObjectURL(e.target.files[0]))
 			setFile(e.target.files[0]);
 		}
 	};

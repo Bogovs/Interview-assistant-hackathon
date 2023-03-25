@@ -1,0 +1,9 @@
+#user-prompt {
+    border: 0.13rem solid #A020F0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    height: 1rem;
+    outline: none;
+    font-size: 0.9rem;
+    width: 70%;
+}
