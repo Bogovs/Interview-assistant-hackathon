@@ -3,16 +3,19 @@ import { fetchEndpoint } from "../utils";
 import { endpoint, formats } from "../constants";
 import "./styles.css";
 
+// interface IFileUpload {
+// 	setAudioBlob: string;
+// }
+
 // Handles File Upload
-const FileUpload = ({setAudioBlob}) => {
+const FileUpload = ({ setAudioBlob }) => {
 	const [file, setFile] = useState<File>();
 	const uploadInput = useRef<HTMLInputElement>(null);
 
 	// Choose File to Upload
 	const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files) {
-			console.log(URL.createObjectURL(e.target.files[0]))
-			setAudioBlob(URL.createObjectURL(e.target.files[0]))
+			setAudioBlob(URL.createObjectURL(e.target.files[0]));
 			setFile(e.target.files[0]);
 		}
 	};
@@ -26,7 +29,7 @@ const FileUpload = ({setAudioBlob}) => {
 
 		if (formats.includes(file.type)) {
 			console.log("Upload Audio File to the Server!");
-			// fetchEndpoint(endpoint.audioUpload, file);
+			fetchEndpoint(endpoint.audioUpload, file);
 		} else {
 			console.log("Invalid File Format!");
 		}
@@ -38,15 +41,17 @@ const FileUpload = ({setAudioBlob}) => {
 
 	return (
 		<div id="upload-container">
-			<input
-				ref={uploadInput}
-				type="file"
-				multiple={false}
-				id="actual-file-input"
-				title="Upload Audio File"
-				accept="audio/wav, audio/mp3, audio/falc"
-				onChange={handleFile}
-			/>
+			<form>
+				<input
+					ref={uploadInput}
+					type="file"
+					multiple={false}
+					id="actual-file-input"
+					title="Upload Audio File"
+					accept="audio/wav, audio/mp3, audio/falc"
+					onChange={handleFile}
+				/>
+			</form>
 			{/* rome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
 			<div id="upload-input" onClick={simulateBrowse}>
 				<div id="browse-wrapper">

@@ -1,9 +1,26 @@
 from fastapi import FastAPI
 from fastapi import File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from uvicorn import run
 # import zstandard as zstd
+
+from dotenv import load_dotenv
+import openai
+from os import getenv, getcwd
 from pydantic import BaseModel
+from predict import User, diarization, transcribe_and_summarize
+
+allowed_origins = [
+    "http://localhost:5173"
+]
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["POST"]
+)
 
 # Implement the audio file compression logic (optional):
 
@@ -32,9 +49,9 @@ def custom_prompt(params: QA):
 @app.post("/audio")
 def upload_audio_file(audio_file: UploadFile = File(...)):
     # Check if the uploaded file is an audio file
-    if audio_file.content_type not in ["audio/mp3", "audio/wave"]:
+    if audio_file.content_type not in ["audio/mp3", "audio/wave", "audio/wav"]:
         raise HTTPException(
-            status_code=400, detail="Only MP3, WAV, and FLAC files are supported.")
+            status_code=400, detail="Only MP3 and WAV files are supported.")
 
     # Save the uploaded file
     with open(audio_file.filename, "wb") as output_file:
@@ -43,7 +60,8 @@ def upload_audio_file(audio_file: UploadFile = File(...)):
     # Compress the uploaded file (optional)
     # compress_audio(audio_file.filename, f"{audio_file.filename}.compressed")
 
-    return {"filename": audio_file.filename}
+    processed = transcribe_and_summarize(audio_file=audio_file.filename)
+    return {"output": processed}
 
 # Implement the basic health check service:
 
@@ -53,3 +71,17 @@ def health_check():
     return {"status": "ok"}
 
 
+@app.post("/test")
+def test():
+    diarization(audio_file_path="./short.wav", file_name="xyz")
+    return {"status": "ran!"}
+
+
+# Run the server:
+if __name__ == "__main__":
+    load_dotenv()
+    OPENAI_API_KEY = getenv("OPENAI_API_KEY")
+    openai.api_key = OPENAI_API_KEY
+
+    user = User()
+    run(app, host="0.0.0.0", port=8000)

@@ -1,16 +1,18 @@
-import { useState } from "react";
 import "./styles.css";
-import Summary from "./summary";
+import { useState } from "react";
 import Transcription from "./transcription";
-import Qa from "./qa";
 import CustomAudio from "../audio/index";
+import Summary from "./summary";
+import Qa from "./qa";
 import Prompt from "../prompt";
 
-interface AudioBlob {
+interface TabsData {
 	audioBlob: string;
+	transcription: string;
+	summary: string;
 }
 
-const Tabs = ({ audioBlob }: AudioBlob) => {
+const Tabs = ({ audioBlob, transcription, summary }: TabsData) => {
 	const [state, setState] = useState({
 		showTranscription: false,
 		showSummary: false,
@@ -74,9 +76,9 @@ const Tabs = ({ audioBlob }: AudioBlob) => {
 
 				<div id="mid-section">
 					{state.showTranscription ? (
-						<Transcription />
+						<Transcription transcription={transcription} />
 					) : state.showSummary ? (
-						<Summary />
+						<Summary summary={summary} />
 					) : state.showQA ? (
 						<Qa />
 					) : (

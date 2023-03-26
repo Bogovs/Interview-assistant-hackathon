@@ -4,7 +4,9 @@ import Tabs from "./components/tabs";
 import { useState } from "react";
 
 const App = () => {
-	const [audioBlob, setAudioBlob] = useState("");
+	const [audioBlob, setAudioBlob] = useState<string>("");
+	const [transcription, setTranscription] = useState<string>("");
+	const [summary, setSummary] = useState<string>("");
 
 	return (
 		<div id="App">
@@ -12,7 +14,11 @@ const App = () => {
 				<FileUpload setAudioBlob={setAudioBlob} />
 			</div>
 			<div id="right-side">
-				<Tabs audioBlob={audioBlob} />
+				<Tabs
+					audioBlob={audioBlob}
+					summary={summary}
+					transcription={transcription}
+				/>
 			</div>
 		</div>
 	);

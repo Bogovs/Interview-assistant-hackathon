@@ -1,7 +1,7 @@
-const formats = ["audio/wav", "audio/mp3", "audio/flac"];
+const formats = ["audio/wav", "audio/mp3", "audio/wave"];
 
 const endpoint = {
-	audioUpload: "http://localhost:8000",
+	audioUpload: "http://127.0.0.1:8000/audio",
 };
 
 export { endpoint, formats };

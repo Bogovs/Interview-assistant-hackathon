@@ -1,10 +1,9 @@
-// interface AudioBlob {
-// 	audioBlob: string;
-// }
+interface ITranscription {
+	transcription: string;
+}
 
-// { audioBlob }: AudioBlob
-const Transcription = () => {
-	return <div>Transcription Tab</div>;
+const Transcription = ({ transcription }: ITranscription) => {
+	return <div>{transcription}</div>;
 };
 
 export default Transcription;

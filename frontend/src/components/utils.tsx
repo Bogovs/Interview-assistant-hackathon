@@ -6,19 +6,17 @@
  * @returns {void}
  */
 const fetchEndpoint = (url: string, file: File): void => {
-	let formData = new FormData();
-	formData.append("file", file);
+	var formdata = new FormData();
+	formdata.append("audio_file", file);
+
 	fetch(url, {
 		method: "POST",
-		body: formData,
+		body: formdata,
 		redirect: "follow",
-		headers: {
-			"content-type": file.type,
-		},
 	})
-		.then((res) => res.json())
-		.then((data) => console.log(data))
-		.catch((error) => console.log(error));
+		.then((response) => response.text())
+		.then((result) => console.log(result))
+		.catch((error) => console.log("error", error));
 };
 
 export { fetchEndpoint };
