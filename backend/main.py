@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 import openai
 from os import getenv, getcwd
 from pydantic import BaseModel
-from predict import User, diarization, transcribe_and_summarize
+from predict import diarization, transcribe_and_summarize, gpt_custom
 
 allowed_origins = [
-    "http://localhost:5173"
+    "*"  # Temporary value set to *
 ]
 
 app = FastAPI()
@@ -23,8 +23,6 @@ app.add_middleware(
 )
 
 # Implement the audio file compression logic (optional):
-
-
 # def compress_audio(input_file_path, output_file_path):
 #     cctx = zstd.ZstdCompressor(level=3)
 #     with open(input_file_path, "rb") as input_file, open(output_file_path, "wb") as output_file:
@@ -33,23 +31,26 @@ app.add_middleware(
 
 # Implement the custom prompt endpoint:
 
+
 class QA(BaseModel):
+    ''' Static Typing for Parameters '''
+    transcription: str
     question: str
-    answer: str
 
 
-@app.post("/custom_prompt")
+@app.post("/custom-prompt")
 def custom_prompt(params: QA):
-    # Process the question and answer and return the result
-    result = f"question is {params.question} and answer is {params.answer}"
-    return {"result": result}
+    ''' QA Endpoint '''
+    qa_prompt = gpt_custom(
+        transcription=params.transcription, question=params.question)
+    return {"answer": qa_prompt}
 
 
-# Implement the audio file endpoint:
 @app.post("/audio")
 def upload_audio_file(audio_file: UploadFile = File(...)):
+    '''Audio Upload and Processing  '''
     # Check if the uploaded file is an audio file
-    if audio_file.content_type not in ["audio/mp3", "audio/wave", "audio/wav"]:
+    if audio_file.content_type not in ["audio/mp3", "audio/wave", "audio/wav", "audio/x-wav"]:
         raise HTTPException(
             status_code=400, detail="Only MP3 and WAV files are supported.")
 
@@ -63,25 +64,20 @@ def upload_audio_file(audio_file: UploadFile = File(...)):
     processed = transcribe_and_summarize(audio_file=audio_file.filename)
     return {"output": processed}
 
-# Implement the basic health check service:
-
 
 @app.get("/health")
 def health_check():
+    ''' Health Check '''
     return {"status": "ok"}
 
 
 @app.post("/test")
 def test():
-    diarization(audio_file_path="./short.wav", file_name="xyz")
-    return {"status": "ran!"}
+    ''' Test Endpoint '''
+    diarized = diarization(audio_file_path="./short.wav", file_name="xyz")
+    return {"output": diarized}
 
 
 # Run the server:
 if __name__ == "__main__":
-    load_dotenv()
-    OPENAI_API_KEY = getenv("OPENAI_API_KEY")
-    openai.api_key = OPENAI_API_KEY
-
-    user = User()
     run(app, host="0.0.0.0", port=8000)

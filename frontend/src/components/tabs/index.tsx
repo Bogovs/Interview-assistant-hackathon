@@ -6,15 +6,25 @@ import Summary from "./summary";
 import Qa from "./qa";
 import Prompt from "../prompt";
 
-interface TabsData {
-	audioBlob: string;
-	transcription: string;
-	summary: string;
-}
+// interface TabsData {
+// 	audioBlob: string;
+// 	transcription: string;
+// 	summary: string;
+// 	question: string;
+// 	setQuestion: string;
+// }
 
-const Tabs = ({ audioBlob, transcription, summary }: TabsData) => {
+const Tabs = ({
+	audioBlob,
+	transcription,
+	summary,
+	question,
+	setQuestion,
+	answer,
+	setAnswer,
+}) => {
 	const [state, setState] = useState({
-		showTranscription: false,
+		showTranscription: true,
 		showSummary: false,
 		showQA: false,
 	});
@@ -80,14 +90,24 @@ const Tabs = ({ audioBlob, transcription, summary }: TabsData) => {
 					) : state.showSummary ? (
 						<Summary summary={summary} />
 					) : state.showQA ? (
-						<Qa />
+						<Qa question={question} answer={answer} />
 					) : (
 						"Browse"
 					)}
 				</div>
 
 				<div id="bottom-section">
-					{state.showQA ? <Prompt /> : <CustomAudio audioBlob={audioBlob} />}
+					{state.showQA ? (
+						<Prompt
+							question={question}
+							setQuestion={setQuestion}
+							transcription={transcription}
+							setAnswer={setAnswer}
+							answer={answer}
+						/>
+					) : (
+						<CustomAudio audioBlob={audioBlob} />
+					)}
 				</div>
 			</div>
 		</div>

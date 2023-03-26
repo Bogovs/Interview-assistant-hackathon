@@ -3,7 +3,8 @@ interface ITranscription {
 }
 
 const Transcription = ({ transcription }: ITranscription) => {
-	return <div>{transcription}</div>;
+	// rome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+	return <div dangerouslySetInnerHTML={{ __html: transcription }} />;
 };
 
 export default Transcription;

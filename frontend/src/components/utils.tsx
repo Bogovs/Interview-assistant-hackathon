@@ -3,10 +3,10 @@
  *
  * @param {string} url - endpoint url
  * @param {File} file - audio file
- * @returns {void}
+ * @returns {any}
  */
-const fetchEndpoint = (url: string, file: File): void => {
-	var formdata = new FormData();
+const fetchEndpoint = (url: string, file: File): any => {
+	let formdata = new FormData();
 	formdata.append("audio_file", file);
 
 	fetch(url, {
@@ -14,9 +14,9 @@ const fetchEndpoint = (url: string, file: File): void => {
 		body: formdata,
 		redirect: "follow",
 	})
-		.then((response) => response.text())
-		.then((result) => console.log(result))
-		.catch((error) => console.log("error", error));
+		.then((response) => response.json())
+		.then((result) => {return result})
+		.catch((error) => {return error});
 };
 
 export { fetchEndpoint };

@@ -1,34 +1,19 @@
-# from dotenv import load_dotenv
+''' Make Predictions '''
+
+import re
+import os
+from subprocess import run
 from mutagen.mp3 import MP3
 import tiktoken
 import openai
-import os
-import re
 from pyannote.audio import Pipeline
 from pydub import AudioSegment
-from subprocess import run
 import whisper
 import webvtt
 
 
-class User:
-    def __init__(self) -> None:
-        self.file_path: str = None
-        self.prompt: str = None
-        self.tokens_num: int = None
-        self.audio_length: float = None
-        self.transcription: str = None
-        self.gpt_summary: str = None
-        self.gpt_custom: str = None
-
-
 def whisper_transcribe(audio_file) -> str:
     """Return transcription of interview. Accept audio file path."""
-
-    # with open(audio_file, 'rb') as f:
-    #     transcription = openai.Audio.transcribe('whisper-1', f)
-    #     transcription = transcription['text']
-    #     return transcription
 
     model = whisper.load_model("base")
     result = model.transcribe(audio_file)
@@ -72,7 +57,7 @@ def diarization(audio_file_path: str, file_name: str) -> dict:
 
     # 3
     pipeline = Pipeline.from_pretrained(
-        'pyannote/speaker-diarization', use_auth_token="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")  # Temporary Hard Coded Token
+        'pyannote/speaker-diarization', use_auth_token=os.getenv("HUGGINGFACE_TOKEN"))
     path = {'uri': 'backend', 'audio': new_audio_file_2}
     pipe = pipeline(path)
 
@@ -130,7 +115,7 @@ def diarization(audio_file_path: str, file_name: str) -> dict:
     print(*captions[:8], sep='\n')
 
     # 8
-    preS = '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <meta http-equiv="X-UA-Compatible" content="ie=edge">\n    <title>Interview</title>\n    <style>\n        body {\n            font-family: sans-serif;\n            font-size: 18px;\n            color: #111;\n            padding: 0 0 1em 0;\n        }\n        .l {\n          color: #050;\n        }\n        .s {\n            display: inline-block;\n        }\n        .e {\n            display: inline-block;\n        }\n        .t {\n            display: inline-block;\n        }\n        #player {\n\t\tposition: sticky;\n\t\ttop: 20px;\n\t\tfloat: right;\n\t}\n    </style>\n  </head>\n  <body>\n    <h2> Interview Transcription </h2>\n  <div  id="player"></div>\n    <script>\n      var tag = document.createElement(\'script\');\n      tag.src = "https://www.youtube.com/iframe_api";\n      var firstScriptTag = document.getElementsByTagName(\'script\')[0];\n      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);\n      var player;\n      function onYouTubeIframeAPIReady() {\n        player = new YT.Player(\'player\', {\n          height: \'210\',\n          width: \'340\',\n          videoId: \'SGzMElJ11Cc\',\n        });\n      }\n      function setCurrentTime(timepoint) {\n        player.seekTo(timepoint);\n   player.playVideo();\n   }\n    </script><br>\n'
+    preS = '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <meta http-equiv="X-UA-Compatible" content="ie=edge">\n    <title>Interview</title>\n    <style>\n        body {\n            font-family: sans-serif;\n            font-size: 18px;\n            color: #111;\n            padding: 0 0 1em 0;\n        }\n        .l {\n          color: #050;\n        }\n        .s {\n            display: inline-block;\n        }\n        .e {\n            display: inline-block;\n        }\n        .t {\n            display: inline-block;\n        }\n        #player {\n\t\tposition: sticky;\n\t\ttop: 20px;\n\t\tfloat: right;\n\t}\n    </style>\n  </head>\n  <body> <div  id="player"></div>\n    <script>\n      var tag = document.createElement(\'script\');\n      tag.src = "https://www.youtube.com/iframe_api";\n      var firstScriptTag = document.getElementsByTagName(\'script\')[0];\n      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);\n      var player;\n      function onYouTubeIframeAPIReady() {\n        player = new YT.Player(\'player\', {\n          height: \'210\',\n          width: \'340\',\n          videoId: \'SGzMElJ11Cc\',\n        });\n      }\n      function setCurrentTime(timepoint) {\n        player.seekTo(timepoint);\n   player.playVideo();\n   }\n    </script><br>\n'
     postS = '\t</body>\n</html>'
 
     html = list(preS)
@@ -158,11 +143,9 @@ def diarization(audio_file_path: str, file_name: str) -> dict:
 
             html.append('\t\t\t<div class="c">\n')
             html.append(
-                f'\t\t\t\t<a class="l" href="#{startStr}" id="{startStr}">link</a> |\n')
-            html.append(
                 f'\t\t\t\t<div class="s"><a href="javascript:void(0);" onclick=setCurrentTime({int(start)})>{startStr}</a></div>\n')
             html.append(
-                f'\t\t\t\t<div class="t">{"[---]" if dzList[i][2] else "[-]"} {c[2]}</div>\n')
+                f'\t\t\t\t<div class="t">{"[Speaker 1]" if dzList[i][2] else "[Speaker 2]"} {c[2]}</div>\n')
             html.append('\t\t\t</div>\n\n')
 
     html.append(postS)
@@ -185,13 +168,10 @@ def diarization(audio_file_path: str, file_name: str) -> dict:
 def transcribe_and_summarize(audio_file: str) -> dict:
     ''' Return Transcription and Summarization '''
 
-    # with open(audio_file, 'rb') as audio:
-    #     transcription = openai.Audio.transcribe('whisper-1', audio)
-    #     transcription = transcription['text']
-
     data = diarization(audio_file_path=audio_file,
                        file_name=audio_file.split(".")[0])
 
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     response_summary = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
@@ -200,6 +180,7 @@ def transcribe_and_summarize(audio_file: str) -> dict:
                 'content': f'Summ up this inerview:\n\n{data["transcription"]}'},
         ]
     )
+
     return {
         "html": data["html"],
         "transcription": data["transcription"],
@@ -207,27 +188,16 @@ def transcribe_and_summarize(audio_file: str) -> dict:
     }
 
 
-# def gpt_summary(transcription: str) -> str:
-#     """Returns summary of interview"""
-
-#     response_summary = openai.ChatCompletion.create(
-#         model='gpt-3.5-turbo',
-#         messages=[
-#             {'role': 'system', 'content': 'You are an interview assistant'},
-#             {'role': 'user', 'content': f'Summ up this inerview:\n\n{transcription}'},
-#         ]
-#     )
-#     return response_summary['choices'][0]['message']['content']
-
-
-def gpt_custom(transcription: str, custom_prompt: str) -> str:
+def gpt_custom(transcription: str, question: str) -> str:
     """Returns custom prompt output"""
+
+    openai.api_key = os.getenv("OPENAI_API_KEY")
 
     response_custom = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
             {'role': 'system', 'content': 'You are an interview assistant'},
-            {'role': 'user', 'content': f'{custom_prompt}\n\n{transcription}'},
+            {'role': 'user', 'content': f'{question}\n\n{transcription}'},
         ]
     )
     return response_custom['choices'][0]['message']['content']
@@ -260,48 +230,3 @@ def cost(tokens_num: int, summary: str, custom: str, length: float) -> float:
         custom_cost = 0
 
     return transcript_cost + summary_cost + custom_cost + length_cost
-
-
-# def main():
-#     # load_dotenv()
-#     OPENAI_API_KEY = "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"
-#     openai.api_key = OPENAI_API_KEY
-
-#     user = User()
-
-#     user.prompt = None
-#     user.file_path = 'short.mp3'
-#     user.audio_length = audio_length(user.file_path)
-
-    # if user.audio_length < 25:  # checking for whisper limit
-    #     user.transcription = whisper(user.file_path)
-    #     user.tokens_num = num_tokens_from_string(
-    #         user.transcription, 'r50k_base')
-
-    #     if user.tokens_num <= 3500:  # checking for gpt limit
-    #         user.gpt_summary = gpt_summary(user.transcription)
-    #         if user.prompt != None:
-    #             user.gpt_custom = gpt_custom(user.transcription, user.prompt)
-    #     else:
-    #         return print('Tokens limit reached')
-
-    # else:
-    #     return print('Too long audio')
-
-    # estimated_cost = cost(user.tokens_num, user.gpt_summary,
-    #                       user.gpt_custom, user.audio_length)
-
-    # output = {'transcription': user.transcription,
-    #           'summary': user.gpt_summary,
-    #           'custom': user.gpt_custom,
-    #           'cost': estimated_cost}
-
-    # return output
-
-
-# if __name__ == '__main__':
-#     try:
-#         # output = main()
-#         # print(output)
-#     except:
-#         print('Something went wrong')
